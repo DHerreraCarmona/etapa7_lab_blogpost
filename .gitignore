@@ -4,3 +4,6 @@ db.sqlite3
 .env
 .vscode/
 Pipfile
+venv_blog
+.env
+

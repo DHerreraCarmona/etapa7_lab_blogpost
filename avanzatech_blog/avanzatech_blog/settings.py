@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 import environ
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -46,6 +47,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS = [
     'apps.user',
+    'apps.post'
 ]
 
 THIRD_PARTY_APPS = [
@@ -80,7 +82,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / "templates",
-                 BASE_DIR / "apss/user/templates"],
+                 BASE_DIR / "apss/user/templates",
+                 BASE_DIR / "apss/post/templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,5 +160,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication')
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
 }

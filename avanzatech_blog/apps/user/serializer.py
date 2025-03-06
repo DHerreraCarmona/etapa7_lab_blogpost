@@ -20,3 +20,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         new_user.save()
 
         return new_user
+    
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "username","email","is_staff","is_active"]
+
+            

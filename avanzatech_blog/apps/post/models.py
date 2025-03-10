@@ -42,18 +42,7 @@ class Post(models.Model):
 
         super().save(*args, **kwargs)
 
-class Likes(models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes", null=False)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes", null=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    public = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    """
-    authenticated = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    team = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    owner = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READEDIT)"""
-
-class Comments(models.Model):
+class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments", null=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments", null=False)
     content = models.TextField()
@@ -64,3 +53,20 @@ class Comments(models.Model):
     authenticated = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
     team = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
     owner = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READEDIT)"""
+
+    def __str__(self):
+        return self.content
+
+class Like(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes", null=False)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes", null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    public = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
+    """
+    authenticated = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
+    team = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
+    owner = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READEDIT)"""
+
+    def __str__(self):
+        return self.author.username

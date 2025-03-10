@@ -1,0 +1,35 @@
+{% extends "rest_framework/base.html" %} <!-- Conserva la vista DRF -->
+
+{% block content %}
+  <h1>{{ post.title }}</h1>
+  <p>{{ post.content }}</p>
+  <p>{{ post.author }}</p>
+  <p>{{ post.creates_at }}</p>
+
+  <p><strong>Likes:</strong> <span id="like-count">{{ likes_count }}</span></p>
+
+  <button id="like-btn">
+    {% if user_has_liked %}
+      ❌ Dislike
+    {% else %}
+      ❤️ Like
+    {% endif %}
+  </button>
+
+  <script>
+    document.getElementById("like-btn").addEventListener("click", function() {
+      fetch("{% url 'post-give-like' post.id %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "Content-Type": "application/json"
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("like-count").innerText = data.status === "Like" ? parseInt(document.getElementById("like-count").innerText) + 1 : parseInt(document.getElementById("like-count").innerText) - 1;
+        document.getElementById("like-btn").innerText = data.status === "Like" ? "❌ Dislike" : "❤️ Like";
+      });
+    });
+  </script>
+{% endblock %}

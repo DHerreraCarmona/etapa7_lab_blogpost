@@ -51,6 +51,7 @@ LOCAL_APPS = [
 
 THIRD_PARTY_APPS = [
     'rest_framework',
+    "drf_spectacular",
     'rest_framework.authtoken',
 ]
 
@@ -81,8 +82,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / "templates",
-                 BASE_DIR / "apss/user/templates",
-                 BASE_DIR / "apss/post/templates"],
+                 BASE_DIR / "apps/user/templates",
+                 BASE_DIR / "apps/post/templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -159,4 +160,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
+
+    "DEFAULT_PAGINATION_CLASS": "apps.post.pagination.CustomPagination",
+
+
 }
+"""
+"PAGE_SIZE": 3,  # Número de elementos por página
+'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+
+'DEFAULT_RENDERER_CLASSES': [
+    'rest_framework.renderers.JSONRenderer',  # Para respuestas JSON
+    'rest_framework.renderers.BrowsableAPIRenderer',  # Permite la vista de Django REST
+    "rest_framework.renderers.TemplateHTMLRenderer",
+],"""

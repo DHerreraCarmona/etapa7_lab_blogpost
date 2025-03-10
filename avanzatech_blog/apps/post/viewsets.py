@@ -3,99 +3,71 @@ from rest_framework import viewsets,status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
-from .serializers import PostSerializer
-from .models import Post
+from .serializers import PostSerializer, CommentSerializer
+from .models import Post, Like
 
-class PostListPagination(PageNumberPagination):
-    page_size = 3
-
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = [IsAuthenticated]
-
-
-    """@action(['GET'], detail=True, serializer_class=PostSerializer)
-    def post_list(self,request,pk):
-        posts = Post.objects.all()
-        paginator = PostListPagination()
-        paginated_posts = paginator.paginate_queryset(posts, request)
-        serializer = PostSerializer(paginated_posts, many=True)
-        return paginator.get_paginated_response(serializer.data)"""
-        
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    @action(detail=False, methods=['POST'], permission_classes=[IsAuthenticated], url_path="post")
-    def create_post(self, request):
-        user = request.user
-        serializer = PostSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=user) 
-        return Response(serializer.data)
-    
+    """
+    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+    def retrieve(self, request, pk=None):
+        post = get_object_or_404(Post, id=pk)
+        #serializer = self.get_serializer(post)
+        likes_count = Like.objects.filter(post=post).count()
+        user_has_liked = Like.objects.filter(post=post, author=request.user).exists() if request.user.is_authenticated else False
+
+        return Response(
+            {"post": post, "likes_count": likes_count, "user_has_liked": user_has_liked},
+            template_name="post_detail.html",  # Usa la plantilla para renderizar HTML
+        )
+    """
+
     @action( methods=["POST"], detail=True, url_path="give-like")
     def give_like(self,request,pk):
         user = request.user
         post = get_object_or_404(Post, id=pk)
-        msg = ""
-        if post.likes.filter(id=user.id).exists():
-            post.likes.remove(user)
+        like = Like.objects.filter(author=user, post=post).first()
+
+        if like:
+            like.delete()
             msg = "Dislike"
         else:
-            post.likes.add(user)
-            msg = "like"
-        post.save() 
-        return Response({"status": f"{msg}"}, status=status.HTTP_200_OK)
+            Like.objects.create(author=user, post=post)
+            msg = "Like"
 
-"""
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])      #solo auth pueden crear post
-def create_post(request):
-    user = request.user
-    serializer = PostSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(author=user)
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": msg}, status=status.HTTP_200_OK)
+    
+    @action( methods=["POST"], detail=True, url_path="write-comment",serializer_class=CommentSerializer)
+    def write_comment(self,request,pk=None):
+        user = request.user
+        post = get_object_or_404(Post, id=pk)
+        
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, post=post)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, *args, **kwargs):
+        """ Permite eliminar un post solo si el usuario es el autor """
+        post = get_object_or_404(Post, pk=kwargs["pk"])
+        
+        if request.user != post.author:
+            return Response(
+                {"error": "No tienes permiso para eliminar este post"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny]) 
-def post_list(request):
-    posts = Post.objects.all()
-    paginator = PostListPagination()
-    paginated_posts = paginator.paginate_queryset(posts, request)
-    serializer = PostSerializer(paginated_posts, many=True)
-    return paginator.get_paginated_response(serializer.data)
-
-@api_view(['PATCH'])
-@permission_classes([IsAuthenticated])  
-#@authentication_classes([JWTAuthentication])
-def update_post(request, pk):
-    user = request.user 
-    post = Post.objects.get(id=pk)
-    if post.author != user:
-        return Response({"error: You aren't the author"}, status=status.HTTP_403_FORBIDDEN)
-    serializer = PostSerializer(post, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
- 
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])  
-#@authentication_classes([JWTAuthentication])
-def delete_post(request, pk):
-    user = request.user
-    post = Post.objects.get(id=pk)
-    if post.author != user:
-        return Response({"error: You aren't the author"}, status=status.HTTP_403_FORBIDDEN)
-    post.delete()
-    return Response({"message: Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)"""
+        return super().destroy(request, *args, **kwargs)

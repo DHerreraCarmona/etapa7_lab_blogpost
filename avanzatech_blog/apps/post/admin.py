@@ -2,8 +2,8 @@ from django.contrib import admin
 from .models import Post, Comment, Like
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("title","author", "public", "created_at")
-    exclude = ("excerpt", "slug", "updated_by")
+    list_display = ("title","author", "created_at","updated_at","updated_by","public","authenticated","team","owner")
+    exclude = ("excerpt", "slug")
 
 class commentAdmin(admin.ModelAdmin):
     list_display = ("author", "post", "created_at")

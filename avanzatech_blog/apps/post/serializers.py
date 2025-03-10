@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from apps.user.serializer import UserSerializer, ShortUserSerializer
+
 from .models import Post, Comment, Like
+from apps.user.serializer import UserSerializer, ShortUserSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -17,11 +18,24 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
-    comments = CommentSerializer(read_only=True, many=True)
+    updated_by = ShortUserSerializer(read_only=True)
     likes = LikeSerializer(read_only=True, many=True)
+    comments = CommentSerializer(read_only=True, many=True)
     class Meta:
         model = Post
-        fields = ['id','author','title','content',
-                 'excerpt','created_at','updated_at',
-                 'updated_by','slug','public','comments','likes']
+        fields = ['id','author','title','excerpt','created_at','updated_at',
+                 'updated_by','comments','likes']
+
+class CreatePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['author','title','content','public','authenticated','team','owner']
+
+
+class EditPostSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    class Meta:
+        model = Post
+        fields = ['author','title','content','public','authenticated','team','owner']
+
 

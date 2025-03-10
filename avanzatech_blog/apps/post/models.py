@@ -18,11 +18,10 @@ class Post(models.Model):
         HIDDEN = "HD", "HIDDEN"
 
     public = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
-    """
     authenticated = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
     team = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
     owner = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READEDIT)
-    """
+    
 
     class Meta:
         ordering = ["-created_at"]
@@ -31,6 +30,7 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
+        self.excerpt = self.content[:199]
         if not self.slug:
             base_slug = slugify(self.title)
             slug = base_slug

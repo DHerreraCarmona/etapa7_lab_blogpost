@@ -12,7 +12,7 @@ from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
 from .serializers import PostSerializer, CommentSerializer
-from .models import Post, Like
+from .models import Post, Comment, Like
 
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PostSerializer
@@ -70,4 +70,55 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        return super().destroy(request, *args, **kwargs)
+        post.delete()
+        return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+    @action( methods=["GET"], detail=True, url_path="comments",serializer_class = CommentSerializer)
+    def view_comments(self,request,pk=None):
+        post = get_object_or_404(Post, id=pk)
+        comments = post.comments.all()
+        serializer = self.get_serializer(comments, many=True)
+        return Response(serializer.data)
+    
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    @action( methods=["GET","PATCH","DELETE"], detail=True, url_path="comment/(?P<index>\\d+)")
+    def view_comment(self,request,pk=None,index=None):
+        post = get_object_or_404(Post, id=pk)
+        comments = post.comments.order_by("created_at")
+        index = int(index) -1
+
+        if index <0 or index >= post.comments.count():
+            return Response(
+                {"error": "Invalid index, comment not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        comment = comments[index]
+            
+        if request.method == "GET":
+            serializer = self.get_serializer(comment)
+            return Response(serializer.data)
+
+        if request.method == "PATCH":
+            if request.user != comment.author:
+                return Response(
+                    {"error": "No tienes permiso para modificar este post"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            serializer = self.get_serializer(comment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.method == "DELETE":
+            if request.user != comment.author or request.user != post.author:
+                return Response(
+                    {"error": "No tienes permiso para eliminar este post"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            comment.delete()
+            return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)

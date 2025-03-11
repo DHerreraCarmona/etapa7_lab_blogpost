@@ -2,6 +2,13 @@ from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
 
+#Permissions options
+class Permissions(models.IntegerChoices):
+        HIDDEN = 0, "Hidden"
+        READONLY = 1, "Read Only"
+        READEDIT = 2, "Read & Edit"
+
+#Model Post -------------------------------------------------------------------------------------------------------------------
 class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="posts", null=True)
     title = models.CharField(max_length=225)
@@ -12,17 +19,11 @@ class Post(models.Model):
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="updated_post", null=True)
     slug = models.SlugField(max_length=255, blank=True, unique=True)
     
-    class Permissions(models.TextChoices):
-        READONLY = "RO", "Read Only"
-        READEDIT = "RE", "Read & Edit"
-        HIDDEN = "HD", "HIDDEN"
-
-    public = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
-    authenticated = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
-    team = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READONLY)
-    owner = models.CharField(max_length=2,choices=Permissions.choices,default=Permissions.READEDIT)
+    public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    authenticated = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    team = models.IntegerField(choices=Permissions.choices,default=Permissions.READONLY)
+    owner = models.IntegerField(choices=[(Permissions.READEDIT, Permissions.READEDIT.label)],default=Permissions.READEDIT)
     
-
     class Meta:
         ordering = ["-created_at"]
 
@@ -42,31 +43,32 @@ class Post(models.Model):
 
         super().save(*args, **kwargs)
 
+#Model comments -----------------------------------------------------------------------------------------------------------
 class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments", null=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments", null=False)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    Public = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    """
-    authenticated = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    team = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    owner = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READEDIT)"""
+    public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    authenticated = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    team = models.IntegerField(choices=Permissions.choices,default=Permissions.READONLY)
+    owner = models.IntegerField(choices=[(Permissions.READEDIT, Permissions.READEDIT.label)],default=Permissions.READEDIT)
 
     def __str__(self):
         return self.content
 
+
+#Model Like ---------------------------------------------------------------------------------------------------------------
 class Like(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes", null=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes", null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    public = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    """
-    authenticated = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    team = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READONLY)
-    owner = models.CharField(max_length=2,choices=Post.Permissions.choices,default=Post.Permissions.READEDIT)"""
+    public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    authenticated = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
+    team = models.IntegerField(choices=Permissions.choices,default=Permissions.READONLY)
+    owner = models.IntegerField(choices=[(Permissions.READEDIT, Permissions.READEDIT.label)],default=Permissions.READEDIT)
 
     def __str__(self):
         return self.author.username

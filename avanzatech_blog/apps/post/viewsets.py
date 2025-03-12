@@ -3,36 +3,32 @@ from rest_framework import viewsets,status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from .serializers import PostSerializer, CommentSerializer
 from .models import Post, Comment, Like
+from .permissions import PostPermissions
 
+#POST VIEWSET----------------------------------------------------------------------------------------
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [PostPermissions]
     
-    """
-    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
-    def retrieve(self, request, pk=None):
-        post = get_object_or_404(Post, id=pk)
-        #serializer = self.get_serializer(post)
-        likes_count = Like.objects.filter(post=post).count()
-        user_has_liked = Like.objects.filter(post=post, author=request.user).exists() if request.user.is_authenticated else False
+    """def get_permissions(self):
+        if self.action == "create":
+            return [IsAuthenticated()]
+        
+        elif self.action == "list" or self.action == "retrieve":
+            return [AuthPermissions()]
+        
+        elif self.action in ["update", "partial_update", "destroy"]:
+            return [OwnerPermissions(), TeamPermissions()]
+        
+        return [IsAdminUser()]"""
 
-        return Response(
-            {"post": post, "likes_count": likes_count, "user_has_liked": user_has_liked},
-            template_name="post_detail.html",  # Usa la plantilla para renderizar HTML
-        )
-    """
-
+    #Like
     @action( methods=["POST"], detail=True, url_path="give-like")
     def give_like(self,request,pk):
         user = request.user
@@ -48,6 +44,7 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response({"status": msg}, status=status.HTTP_200_OK)
     
+    #Comment
     @action( methods=["POST"], detail=True, url_path="write-comment",serializer_class=CommentSerializer)
     def write_comment(self,request,pk=None):
         user = request.user
@@ -59,20 +56,8 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    def destroy(self, request, *args, **kwargs):
-        """ Permite eliminar un post solo si el usuario es el autor """
-        post = get_object_or_404(Post, pk=kwargs["pk"])
-        
-        if request.user != post.author:
-            return Response(
-                {"error": "No tienes permiso para eliminar este post"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        post.delete()
-        return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
     
+    #View Comments list
     @action( methods=["GET"], detail=True, url_path="comments",serializer_class = CommentSerializer)
     def view_comments(self,request,pk=None):
         post = get_object_or_404(Post, id=pk)
@@ -80,28 +65,42 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(comments, many=True)
         return Response(serializer.data)
     
+    #Delete
+    def destroy(self, request, *args, **kwargs):
+        self.check_permissions(request)
+
+        post = get_object_or_404(Post, pk=kwargs["pk"])
+        post.delete()
+        return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
+        
+
+    
+#COMMENT VIEWSET----------------------------------------------------------------------------------------
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [PostPermissions]
     
+    #View specific comment and modify
     @action( methods=["GET","PATCH","DELETE"], detail=True, url_path="comment/(?P<index>\\d+)")
     def view_comment(self,request,pk=None,index=None):
         post = get_object_or_404(Post, id=pk)
         comments = post.comments.order_by("created_at")
         index = int(index) -1
-
+        
         if index <0 or index >= post.comments.count():
             return Response(
                 {"error": "Invalid index, comment not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
-        comment = comments[index]
-            
+        comment = comments[index]                                   #Get comment by index
+        
+        #View comment
         if request.method == "GET":
             serializer = self.get_serializer(comment)
             return Response(serializer.data)
 
+        #Edit comment
         if request.method == "PATCH":
             if request.user != comment.author:
                 return Response(
@@ -114,8 +113,9 @@ class CommentViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        #Delete commemt
         if request.method == "DELETE":
-            if request.user != comment.author or request.user != post.author:
+            if request.user != comment.author:
                 return Response(
                     {"error": "No tienes permiso para eliminar este post"},
                     status=status.HTTP_403_FORBIDDEN

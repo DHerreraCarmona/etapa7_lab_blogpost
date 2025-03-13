@@ -16,7 +16,7 @@ class Post(models.Model):
     excerpt = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="updated_post", null=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="updated_post", null=True, default=None)
     slug = models.SlugField(max_length=255, blank=True, unique=True)
     
     public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)

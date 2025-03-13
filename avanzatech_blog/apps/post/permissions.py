@@ -4,24 +4,35 @@ from rest_framework.permissions import SAFE_METHODS
 class PostPermissions(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if not user.is_authenticated:
-            return request.method in SAFE_METHODS and obj.public
+        edit = request.method not in SAFE_METHODS
 
+        if not user.is_authenticated:
+            return not edit and obj.public
+        
         if user.role == 1 or obj.author == user:
             return True
         
-        edit = request.method not in SAFE_METHODS
-        is_team = obj.author.groups.first() == request.user.groups.first()
+        is_team = obj.author.groups.first() == user.groups.first()
 
-        if is_team:
-            if obj.team == 1 and not edit :
+        if obj.team and is_team:
+            if obj.team == 1 and not edit : 
                     return True
-            elif obj.team == 2 and edit:
+            elif obj.team == 2:
                 return True
             else: 
                  return False
             
         if not edit:
-            return request.method in SAFE_METHODS and obj.authenticated
-                
-        return False
+            return obj.authenticated
+
+        return False 
+    
+def filter_queryset_by_permissions(request, queryset, permission_class):
+    allowed_objects = []
+    permission = permission_class()
+
+    for obj in queryset:
+        if permission.has_object_permission(request, None, obj):
+            allowed_objects.append(obj)
+
+    return queryset.filter(id__in=[obj.id for obj in allowed_objects]).distinct().order_by('created_at')

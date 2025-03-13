@@ -17,3 +17,16 @@ class CustomPagination(PageNumberPagination):
             "previous": self.get_previous_link(),
             "results": data,
         })
+    
+
+#Pagination classes ---------------------------------------------------------------------
+
+class PostListPagination(CustomPagination):
+            page_size = 10
+
+class CommentsListPagination(CustomPagination):
+        page_size = 10
+
+class LikeListPagination(CustomPagination):
+    page_size = 20
+

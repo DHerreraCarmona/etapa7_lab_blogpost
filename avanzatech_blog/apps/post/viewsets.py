@@ -4,8 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
+from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from .serializers import PostSerializer, CommentSerializer
 from .models import Post, Comment, Like
 from .permissions import PostPermissions
@@ -14,22 +13,23 @@ from .permissions import PostPermissions
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = [PostPermissions]
-    
-    """def get_permissions(self):
-        if self.action == "create":
-            return [IsAuthenticated()]
-        
-        elif self.action == "list" or self.action == "retrieve":
-            return [AuthPermissions()]
-        
-        elif self.action in ["update", "partial_update", "destroy"]:
-            return [OwnerPermissions(), TeamPermissions()]
-        
-        return [IsAdminUser()]"""
+    permission_classes = [IsAuthenticatedOrReadOnly,PostPermissions]
 
+    #Comment
+    @action( methods=["POST"], detail=True, url_path="write-comment",serializer_class=CommentSerializer,permission_classes=[IsAuthenticated])
+    def write_comment(self,request,pk=None):
+        user = request.user
+        post = get_object_or_404(Post, id=pk)
+        
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, post=post)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     #Like
-    @action( methods=["POST"], detail=True, url_path="give-like")
+    @action( methods=["POST"], detail=True, url_path="give-like",permission_classes=[IsAuthenticated] )
     def give_like(self,request,pk):
         user = request.user
         post = get_object_or_404(Post, id=pk)
@@ -44,19 +44,6 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response({"status": msg}, status=status.HTTP_200_OK)
     
-    #Comment
-    @action( methods=["POST"], detail=True, url_path="write-comment",serializer_class=CommentSerializer)
-    def write_comment(self,request,pk=None):
-        user = request.user
-        post = get_object_or_404(Post, id=pk)
-        
-        serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(author=request.user, post=post)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
     #View Comments list
     @action( methods=["GET"], detail=True, url_path="comments",serializer_class = CommentSerializer)
     def view_comments(self,request,pk=None):
@@ -67,19 +54,17 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
     
     #Delete
     def destroy(self, request, *args, **kwargs):
-        self.check_permissions(request)
-
         post = get_object_or_404(Post, pk=kwargs["pk"])
-        post.delete()
-        return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
-        
+        self.check_object_permissions(request, post)
 
+        post.delete()
+        return Response({"message": "Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     
 #COMMENT VIEWSET----------------------------------------------------------------------------------------
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
-    permission_classes = [PostPermissions]
+    permission_classes = [IsAuthenticatedOrReadOnly,PostPermissions]
     
     #View specific comment and modify
     @action( methods=["GET","PATCH","DELETE"], detail=True, url_path="comment/(?P<index>\\d+)")

@@ -8,14 +8,16 @@ class Permissions(models.Model):
             ADMIN = 1, "Admin"
 
     role = models.IntegerField(choices=Roles.choices,default=Roles.BLOGGER)
-    
     def __str__(self):
-        return self.get_role_display()
+        return self.id
     
 class CustomUserManager(BaseUserManager):
     def create_user(self, email,username, password=None, **extra_fields):
         if not email:
             raise ValueError(_('The Email must be set'))
+        if not username:
+            raise ValueError(_('The Username must be set'))
+        
         email = self.normalize_email(email)
         user = self.model(email=email,username=username, **extra_fields)
         user.set_password(password)
@@ -34,16 +36,14 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
 
-        return self.create_user(email,username, password, **extra_fields)
-
-     
+        return self.create_user(email,username, password, **extra_fields)  
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     username = models.CharField(_('username'),max_length=20, unique=True)
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
-    role = models.ForeignKey(Permissions,on_delete=models.PROTECT, related_name="User", null=False, default=0)
+    role = models.ForeignKey(Permissions,on_delete=models.SET_NULL, related_name="User", null=True, default=0)
 
     objects = CustomUserManager()
 

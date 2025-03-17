@@ -160,13 +160,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
-
     "DEFAULT_PAGINATION_CLASS": "apps.post.pagination.CustomPagination",
-
-
 }
+
 """
-"PAGE_SIZE": 3,  # Número de elementos por página
 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
 
 'DEFAULT_RENDERER_CLASSES': [

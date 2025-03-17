@@ -50,25 +50,14 @@ class Comment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
-    authenticated = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
-    team = models.IntegerField(choices=Permissions.choices,default=Permissions.READONLY)
-    owner = models.IntegerField(choices=[(Permissions.READEDIT, Permissions.READEDIT.label)],default=Permissions.READEDIT)
-
     def __str__(self):
         return self.content
-
 
 #Model Like ---------------------------------------------------------------------------------------------------------------
 class Like(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes", null=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes", null=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    public = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
-    authenticated = models.IntegerField(choices=Permissions.choices[:2],default=Permissions.READONLY)
-    team = models.IntegerField(choices=Permissions.choices,default=Permissions.READONLY)
-    owner = models.IntegerField(choices=[(Permissions.READEDIT, Permissions.READEDIT.label)],default=Permissions.READEDIT)
 
     def __str__(self):
         return self.author.username

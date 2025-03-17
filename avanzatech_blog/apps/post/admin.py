@@ -3,6 +3,7 @@ from .models import Post, Comment, Like
 
 class PostAdmin(admin.ModelAdmin):
     list_display = ("title","author", "created_at","updated_at","updated_by","public","authenticated","team","owner")
+    readonly_fields = ("author", "updated_by", "created_at","updated_at")
     exclude = ("excerpt", "slug")
 
 class commentAdmin(admin.ModelAdmin):

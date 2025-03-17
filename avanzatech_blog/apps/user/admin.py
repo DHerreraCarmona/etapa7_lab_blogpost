@@ -4,7 +4,7 @@ from .models import CustomUser, Permissions
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ('email','username', 'is_staff', 'is_active', 'role')  # Campos visibles en la lista de usuarios
+    list_display = ('id','email','username', 'is_staff', 'is_active', 'role')  # Campos visibles en la lista de usuarios
     list_filter = ('is_staff', 'is_active')  # Filtros en el admin
     fieldsets = (
         (None, {'fields': ('email', 'username','password')}),
@@ -13,7 +13,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active')}
+            'fields': ('email', 'username','password1', 'password2', 'is_staff', 'is_active')}
         ),
     )
     search_fields = ('email','username')  # Permite buscar por email en el admin

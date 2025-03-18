@@ -1,14 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Permissions
+from .models import CustomUser, Permission, Group
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ('id','email','username', 'is_staff', 'is_active', 'role')  # Campos visibles en la lista de usuarios
+    list_display = ('email','id','username', 'is_staff', 'is_active', 'role', 'group')  # Campos visibles en la lista de usuarios
     list_filter = ('is_staff', 'is_active')  # Filtros en el admin
     fieldsets = (
         (None, {'fields': ('email', 'username','password')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active','role' ,'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active','role' ,'group', 'user_permissions')}),
     )
     add_fieldsets = (
         (None, {
@@ -20,5 +20,6 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)  # Ordena por email
 
 admin.site.register(CustomUser, CustomUserAdmin)  # Registra el modelo en el admin
-admin.site.register(Permissions)  # Registra el modelo en el admin
+admin.site.register(Permission)  # Registra el modelo en el admin
+admin.site.register(Group)  # Registra el modelo en el admin
 

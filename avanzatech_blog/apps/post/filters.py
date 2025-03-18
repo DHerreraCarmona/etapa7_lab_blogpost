@@ -1,6 +1,9 @@
 from rest_framework.permissions import BasePermission
 from rest_framework.permissions import SAFE_METHODS
+from rest_framework.exceptions import NotFound
+
 from .permissions import PostPermissions
+from .models import Post
 
 def filter_posts(model,request):
     queryset = model.objects.all()
@@ -25,7 +28,14 @@ def filter_reactions(model, request, author_id=None, post_id=None):
         queryset = queryset.filter(post__id=post_id)
 
     for obj in queryset:
-        if permission.has_object_permission(request, None, obj):
+        if permission.has_object_permission(request, None, obj.post):
             allowed_obj.append(obj.id)
 
     return model.objects.filter(id__in=allowed_obj).distinct().order_by('post_id')
+
+def retrieve_obj(Model,obj_id):
+    try:
+        obj = Model.objects.get(pk=obj_id)
+    except Model.DoesNotExist:
+        raise NotFound({"error": "No Post matches the given query."}) 
+    return obj

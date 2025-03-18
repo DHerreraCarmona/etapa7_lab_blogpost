@@ -15,7 +15,7 @@ class PostPermissions(BasePermission):
         
         if isinstance(obj, Comment) or isinstance(obj, Like):
             obj = obj.post 
-        is_team = obj.author.groups.first() == user.groups.first()
+        is_team = obj.author.group == user.group
 
         if obj.team and is_team:
             if obj.team == 1 and not edit : 

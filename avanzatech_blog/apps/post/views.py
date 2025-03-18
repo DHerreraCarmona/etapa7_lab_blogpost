@@ -1,17 +1,15 @@
-from django.http import Http404
 from django.shortcuts import render
-
 from django.utils.timezone import now
-from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView, CreateAPIView,RetrieveUpdateDestroyAPIView
-from .serializers import PostSerializer, EditPostSerializer, ShortCommentSerializer, ShortLikeSerializer, DetailLikeSerializer, DetailCommentSerializer
 
 from .models import Post, Comment, Like
-from .pagination import PostListPagination, CommentsListPagination, LikeListPagination
 from apps.user.models import CustomUser as Author
-from .filters import filter_posts, filter_reactions
 from .permissions import PostPermissions
+from .filters import filter_posts, filter_reactions, retrieve_obj
+from .pagination import PostListPagination, CommentsListPagination, LikeListPagination
+from .serializers import PostSerializer, EditPostSerializer, ShortCommentSerializer, ShortLikeSerializer, DetailLikeSerializer, DetailCommentSerializer
 
 #View list of post ------------------------------------------------------------------------------
 class PostView(ListAPIView):
@@ -39,9 +37,11 @@ class EditPostView(RetrieveUpdateDestroyAPIView):
     permission_classes = [PostPermissions]
     
     def get_object(self):
-        post = get_object_or_404(Post, id=self.kwargs["pk"])
+        post_id = self.kwargs.get("pk")
+        post = retrieve_obj(Post,post_id)
+        
         if not PostPermissions().has_object_permission(self.request, self, post):
-            raise Http404
+            raise NotFound({"error": "No Post matches the given query."}) 
         return post
 
     def perform_update(self, serializer):
@@ -56,21 +56,27 @@ class CommentsView(ListAPIView):
     def get_queryset(self):
         return filter_reactions(Comment, self.request)
     
-class CommentsPostView(ListAPIView):
+class CommentsPostView(ListAPIView):                    # Buscar comentarios por post asociado
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailCommentSerializer
     pagination_class = CommentsListPagination
+
     def get_queryset(self):
-        post_id = self.kwargs.get("post_id")      # Buscar comentarios por post asociado
+        post_id = self.kwargs.get("post_id")
+        post = retrieve_obj(Post,post_id)
+        
+        if not PostPermissions().has_object_permission(self.request, self, post):
+           raise NotFound({"error": "No Post matches the given query."}) 
         return filter_reactions(Comment, self.request, None, post_id)
 
-class CommentsAuthorView(ListAPIView):
+class CommentsAuthorView(ListAPIView):                  # Buscar comentarios por autor
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailCommentSerializer
     pagination_class = CommentsListPagination
 
     def get_queryset(self):
-        author_id = self.kwargs.get("author_id")  # Buscar comentarios por autor
+        author_id = self.kwargs.get("author_id")        
+        retrieve_obj(Author,author_id)
         return filter_reactions(Comment, self.request, author_id, None)
 
 #View list of Likes ---------------------------------------------------------------------------
@@ -82,20 +88,25 @@ class LikesView(ListAPIView):
     def get_queryset(self):
         return filter_reactions(Like, self.request)
 
-class LikesPostView(ListAPIView):
+class LikesPostView(ListAPIView):                       # Buscar likes por post asociado
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailLikeSerializer
     pagination_class = LikeListPagination
 
     def get_queryset(self):
-        post_id = self.kwargs.get("post_id")      # Buscar likes por post asociado
+        post_id = self.kwargs.get("post_id")      
+        post = retrieve_obj(Post,post_id) 
+
+        if not PostPermissions().has_object_permission(self.request, self, post):
+           raise NotFound({"error": "No Post matches the given query."}) 
         return filter_reactions(Like, self.request, None, post_id)
 
-class LikesAuthorView(ListAPIView):
+class LikesAuthorView(ListAPIView):                     # Buscar likes por autor
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailLikeSerializer
     pagination_class = LikeListPagination
 
     def get_queryset(self):
-        author_id = self.kwargs.get("author_id")  # Buscar likes por autor
+        author_id = self.kwargs.get("author_id")  
+        retrieve_obj(Author,author_id)
         return filter_reactions(Like, self.request, author_id, None)

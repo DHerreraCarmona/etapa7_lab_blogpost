@@ -1,32 +1,34 @@
-from django.http import Http404
 from django.shortcuts import render
 from rest_framework import viewsets,status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import NotFound
+
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 
 from .pagination import CommentsListPagination, LikeListPagination
 from .serializers import PostSerializer, ShortCommentSerializer, ShortLikeSerializer
 from .models import Post, Comment, Like
 from .permissions import PostPermissions
+from .filters import retrieve_obj
 
 #POST VIEWSET------------------------------------------------------------------------------------------------------------------
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     #Detail & Delete------------------------------------------------------------------------------
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    #pagination_class = PostListPagination
     permission_classes = [IsAuthenticatedOrReadOnly,PostPermissions]
 
-    def get_object(self):
-        post = get_object_or_404(Post, id=self.kwargs["pk"])
+    def get_object(self):                                                          #Get Post                                
+        post_id=self.kwargs["pk"]
+        post = retrieve_obj(Post,post_id)
         if not PostPermissions().has_object_permission(self.request, self, post):
-            raise Http404  
+            raise NotFound({"error": "No Post matches the given query."})  
         return post
 
     def destroy(self, request, *args, **kwargs):                                   #Delete Post
-        post = get_object_or_404(Post, pk=kwargs["pk"])
+        post_id=self.kwargs["pk"]
+        post = retrieve_obj(Post,post_id)
         self.check_object_permissions(request, post)
 
         post.delete()
@@ -38,14 +40,11 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
             serializer_class=ShortCommentSerializer,
             permission_classes=[IsAuthenticated])
     def write_comment(self,request,pk=None):                                    
-        user = request.user
-        post = get_object_or_404(Post, id=pk)
-        
         serializer = ShortCommentSerializer(data=request.data)
+        post = retrieve_obj(Post,pk)
         if serializer.is_valid():
             serializer.save(author=request.user, post=post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action( methods=["POST"], detail=True,                                        #Give Like
@@ -53,16 +52,14 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
             permission_classes=[IsAuthenticated] )
     def give_like(self,request,pk):
         user = request.user
-        post = get_object_or_404(Post, id=pk)
+        post = retrieve_obj(Post,pk)
         like = Like.objects.filter(author=user, post=post).first()
-
         if like:
             like.delete()
             msg = "Dislike"
         else:
             Like.objects.create(author=user, post=post)
             msg = "Like"
-
         return Response({"status": msg}, status=status.HTTP_200_OK)
     
     #List Comments & Likes ------------------------------------------------------------------------------
@@ -95,17 +92,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     #View,Edit & Delete specific comment------------------------------------------------------------
     @action( methods=["GET","PATCH","DELETE"], detail=True, url_path="comments/(?P<index>\\d+)")
     def view_comment(self,request,pk=None,index=None):
-        post = get_object_or_404(Post, id=pk)
+        post = retrieve_obj(Post,pk)
         if not PostPermissions().has_object_permission(request, self, post):
-             return Response({"error": "No tienes permiso para ver este post."}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound({"error": "No Post matches the given query."}) 
         
         comments = post.comments.order_by("created_at")
-
         index = int(index) -1                                                          #Get comment by index not by comment id
         if index <0 or index >= comments.count():
-            return Response(
-                {"error": "Invalid index, comment not found"},status=status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound({"error": "No Post matches the given query."}) 
         comment = comments[index] 
 
         if request.method == "GET":                                                     #View comment
@@ -114,10 +108,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         if request.method == "PATCH":                                                   #Edit comment
             if request.user != comment.author:
-                return Response(
-                    {"error": "No tienes permiso para modificar este post"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                raise NotFound({"error": "No Post matches the given query."}) 
             serializer = self.get_serializer(comment, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -126,9 +117,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         if request.method == "DELETE":                                                  #Delete comment
             if request.user != comment.author:
-                return Response(
-                    {"error": "No tienes permiso para eliminar este post"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                raise NotFound({"error": "No Post matches the given query."}) 
             comment.delete()
             return Response({"message": "comment deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)

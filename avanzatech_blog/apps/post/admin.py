@@ -8,9 +8,12 @@ class PostAdmin(admin.ModelAdmin):
 
 class commentAdmin(admin.ModelAdmin):
     list_display = ("author", "post", "created_at")
+    readonly_fields = ("author","post","created_at")
 
 class likeAdmin(admin.ModelAdmin):
     list_display = ( "post", "author", "created_at")
+    readonly_fields = ("author","post")
+
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(Comment,commentAdmin)

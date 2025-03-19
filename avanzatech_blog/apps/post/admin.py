@@ -6,15 +6,14 @@ class PostAdmin(admin.ModelAdmin):
     readonly_fields = ("author", "updated_by", "created_at","updated_at")
     exclude = ("excerpt", "slug")
 
-class commentAdmin(admin.ModelAdmin):
-    list_display = ("author", "post", "created_at")
-    readonly_fields = ("author","post","created_at")
-
 class likeAdmin(admin.ModelAdmin):
     list_display = ( "post", "author", "created_at")
     readonly_fields = ("author","post")
 
+class commentAdmin(admin.ModelAdmin):
+    list_display = ("author", "post", "created_at")
+    readonly_fields = ("author","post","created_at")
 
 admin.site.register(Post, PostAdmin)
-admin.site.register(Comment,commentAdmin)
 admin.site.register(Like,likeAdmin)
+admin.site.register(Comment,commentAdmin)

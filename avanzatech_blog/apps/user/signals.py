@@ -1,6 +1,6 @@
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
-from .models import Permission
+from .models import UserPermission
 
 @receiver(post_migrate)
 def create_roles(sender, **kwargs):
@@ -13,6 +13,6 @@ def create_roles(sender, **kwargs):
     ]
 
     for role_id, role_name in roles:
-        Permission.objects.get_or_create(id=role_id, defaults={"role": role_id})
+        UserPermission.objects.get_or_create(id=role_id, defaults={"role": role_id})
 
-    print("Roles created successfully!")
+    #print("Roles created successfully!")

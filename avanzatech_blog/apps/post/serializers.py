@@ -39,7 +39,7 @@ class EditPostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     class Meta:
         model = Post
-        fields = ['author','title','content','public','authenticated','team','owner']
+        fields = ['id','author','title','content','public','authenticated','team','owner']
 
 #Detail Comments & Likes serializer ------------------------------------------------------
 class DetailCommentSerializer(serializers.ModelSerializer):

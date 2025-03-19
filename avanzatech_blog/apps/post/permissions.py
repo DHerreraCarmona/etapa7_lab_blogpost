@@ -27,3 +27,4 @@ class PostPermissions(BasePermission):
         if not edit:
             return obj.authenticated
         return False 
+    

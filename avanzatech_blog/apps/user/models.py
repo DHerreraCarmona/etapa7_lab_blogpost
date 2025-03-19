@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-class Permission(models.Model):
+class UserPermission(models.Model):
     class Roles(models.IntegerChoices):
             BLOGGER = 0, "Blogger"
             ADMIN = 1, "Admin"
@@ -10,6 +10,8 @@ class Permission(models.Model):
     role = models.IntegerField(choices=Roles.choices,default=Roles.BLOGGER)
     def __str__(self):
         return self.get_role_display()
+    class Meta:
+        app_label = "user"
     
 class Group(models.Model):
     name = models.CharField(max_length=20)
@@ -34,7 +36,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
-        admin_role, _ = Permission.objects.get_or_create(role=Permission.Roles.ADMIN)
+        admin_role, _ = UserPermission.objects.get_or_create(role=UserPermission.Roles.ADMIN)
         extra_fields.setdefault('role', admin_role)
 
         if extra_fields.get('is_staff') is not True:
@@ -49,7 +51,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(_('username'),max_length=20, unique=True)
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
-    role = models.ForeignKey(Permission,on_delete=models.SET_NULL, related_name="User", null=True, default=0)
+    role = models.ForeignKey(UserPermission,on_delete=models.SET_NULL, related_name="User", null=True, default=0)
     group = models.ForeignKey(Group,on_delete=models.SET_NULL, related_name="user",null=True, default=None, blank=True)
 
     objects = CustomUserManager()

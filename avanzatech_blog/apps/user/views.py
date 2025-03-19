@@ -1,5 +1,6 @@
 # Create your views here.
 from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
@@ -17,18 +18,14 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Redirect to a success page.
-            return redirect('success_page')
+            return HttpResponseRedirect('/post/')
         else:
-            # Return an 'invalid login' error message.
             return render(request, 'user/login.html', {'error': 'Invalid credentials'})
     else:
         return render(request, 'user/login.html')
 
-
 def logout_view(request):
     logout(request)
-    # Redirect to a login page, home page, or any other page
     return redirect('user/login_page')
 
 @api_view(["POST"])
@@ -37,10 +34,11 @@ def logout_view(request):
 def register_user(request):
     queryset = CustomUser.objects.all()
     data = request.data if request.content_type == 'application/json' else request.POST
-    serializer = UserRegistrationSerializer(data=request.data)
+    serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data)
+        return Response({"message": "User registered successfully","user": serializer.data}, status=status.HTTP_201_CREATED)
+       # return redirect('/post/')
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def register_page(request):

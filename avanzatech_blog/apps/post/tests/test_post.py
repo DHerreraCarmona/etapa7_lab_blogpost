@@ -2,7 +2,7 @@ import pytest
 
 from apps.post.serializers import PostSerializer
 from apps.post.models import Post
-from test_init import CreateUser,LoginUser1, LoginPost
+from test_init import CreateUser,LoginUser, LoginPost
 
 #Create Post in DataBase -------------------------------------------------------------------------------------------------------------------------
 @pytest.mark.post_view
@@ -13,14 +13,14 @@ def test_create_post(CreateUser):
 
 #Test Create,Patch,Delete,Retrieve Post View -----------------------------------------------------------------------------------------------------
 @pytest.mark.post_view
-def test_post_create_view(CreateUser,LoginUser1):
+def test_post_create_view(CreateUser,LoginUser):
     client,user1 = CreateUser
     response = client.post("/post/create/", {"author":user1, "title":"Test Title 2","content":"Test Content"})
     assert response.status_code == 201                          #Test status created
     assert Post.objects.filter(title="Test Title 2").exists()   #Test created in db
 
 @pytest.mark.post_view
-def test_post_list_view(LoginPost,LoginUser1):
+def test_post_list_view(LoginPost,LoginUser):
     response,client,post_id,_ = LoginPost
     response = client.get("/post/")
     db_comment_serialized = PostSerializer(Post.objects.get(id=post_id)).data

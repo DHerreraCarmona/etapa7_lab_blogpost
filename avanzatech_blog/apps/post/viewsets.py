@@ -2,14 +2,14 @@ from django.shortcuts import render
 from rest_framework import viewsets,status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 
 from .pagination import CommentsListPagination, LikeListPagination
 from .serializers import PostSerializer, ShortCommentSerializer, ShortLikeSerializer
 from .models import Post, Comment, Like
-from .permissions import PostPermissions
+from .permissions import PostPermissions, same_team
 from .filters import retrieve_obj
 
 #POST VIEWSET------------------------------------------------------------------------------------------------------------------
@@ -38,10 +38,11 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
     @action( methods=["POST"], detail=True,                                        #Write Comments
             url_path="write-comment",
             serializer_class=ShortCommentSerializer,
-            permission_classes=[IsAuthenticated])
-    def write_comment(self,request,pk=None):                                    
-        serializer = ShortCommentSerializer(data=request.data)
+            permission_classes=[PostPermissions])
+    def write_comment(self,request,pk=None): 
         post = retrieve_obj(Post,pk)
+        self.check_object_permissions(request, post)
+        serializer = ShortCommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(author=request.user, post=post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -49,10 +50,11 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action( methods=["POST"], detail=True,                                        #Give Like
             url_path="give-like",
-            permission_classes=[IsAuthenticated] )
+            permission_classes=[PostPermissions])
     def give_like(self,request,pk):
         user = request.user
         post = retrieve_obj(Post,pk)
+        self.check_object_permissions(request, post)
         like = Like.objects.filter(author=user, post=post).first()
         if like:
             like.delete()

@@ -2,7 +2,7 @@ import pytest
 
 from apps.post.serializers import ShortLikeSerializer,DetailLikeSerializer
 from apps.post.models import Post,Like
-from test_init import CreateUser, LoginUser1, Create_Post, Create_Like_Post_Login
+from test_init import CreateUser, LoginUser, Create_Post, Create_Like_Post_Login
 
 #Create comment in DataBase -------------------------------------------------------------------------------------------------------------------------
 @pytest.mark.like_view
@@ -48,14 +48,14 @@ def test_like_retrieve_action(Create_Like_Post_Login):
     assert response.data[0] == db_like_serialized                       #Test retrieve = db
 
 @pytest.mark.like_viewset
-def test_like_create_action(LoginUser1,Create_Post):
+def test_like_create_action(LoginUser,Create_Post):
     client,post_id,user1 = Create_Post
     response = client.post(f"/post/{post_id}/give-like/", {"author":user1, "post_id":post_id})
     assert response.status_code == 200                                          #Test status created
     assert Like.objects.filter(author=user1).filter(post_id=post_id).exists()   #Test created in db
 
 @pytest.mark.like_viewset
-def test_like_delete_action(LoginUser1,Create_Post):
+def test_like_delete_action(LoginUser,Create_Post):
     client,post_id,user1 = Create_Post
     response = client.post(f"/post/{post_id}/give-like/", {"author":user1, "post_id":post_id})  #like
     response = client.post(f"/post/{post_id}/give-like/", {"author":user1, "post_id":post_id})  #dislike

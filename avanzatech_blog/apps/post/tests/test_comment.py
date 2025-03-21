@@ -2,7 +2,7 @@ import pytest
 
 from apps.post.serializers import ShortCommentSerializer,DetailCommentSerializer
 from apps.post.models import Post,Comment
-from test_init import CreateUser,LoginUser1, Create_Post, Create_Comment_Post_Login
+from test_init import CreateUser,LoginUser, Create_Post, Create_Comment_Post_Login
 
 #Create comment in DataBase -------------------------------------------------------------------------------------------------------------------------
 @pytest.mark.comment_view
@@ -38,7 +38,7 @@ def test_comment_get_by_author(Create_Comment_Post_Login):
 
 #Test Create,Patch,Delete,Retrieve Post Viewset -----------------------------------------------------------------------------------------------------
 @pytest.mark.comment_viewset
-def test_comment_create_action(LoginUser1,Create_Post):
+def test_comment_create_action(LoginUser,Create_Post):
     client,post_id,user1 = Create_Post
     response = client.post(f"/post/{post_id}/write-comment/", {"author":user1, "post_id":post_id,"content":"Test Comment 2"})
     assert response.status_code == 201                                 #Test status created

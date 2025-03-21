@@ -3,6 +3,9 @@ from rest_framework.permissions import SAFE_METHODS
 
 from .models import Comment, Like
 
+def same_team(user, post):
+     return post.author.group == user.group
+
 class PostPermissions(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
@@ -17,6 +20,9 @@ class PostPermissions(BasePermission):
             obj = obj.post 
         is_team = obj.author.group == user.group
 
+        if getattr(view, "action", None) in ["give_like", "write_comment"]:
+            return (obj.public or (obj.team and is_team))
+        
         if obj.team and is_team:
             if obj.team == 1 and not edit : 
                     return True

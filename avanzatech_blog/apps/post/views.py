@@ -40,7 +40,7 @@ class EditPostView(RetrieveUpdateDestroyAPIView):
         post_id = self.kwargs.get("pk")
         post = retrieve_obj(Post,post_id)
         
-        if not PostPermissions().has_object_permission(self.request, self, post):
+        if not PostPermissions().has_object_permission(self.request, self, post) or not self.request.user.is_authenticated:
             raise NotFound({"error": "No Post matches the given query."}) 
         return post
 

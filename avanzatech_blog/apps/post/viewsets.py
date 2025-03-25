@@ -2,15 +2,14 @@ from django.shortcuts import render
 from rest_framework import viewsets,status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
-
+from .models import Post, Like
+from .filters import retrieve_obj
+from .permissions import PostPermissions
 from .pagination import CommentsListPagination, LikeListPagination
 from .serializers import PostSerializer, ShortCommentSerializer, ShortLikeSerializer
-from .models import Post, Comment, Like
-from .permissions import PostPermissions, same_team
-from .filters import retrieve_obj
 
 #POST VIEWSET------------------------------------------------------------------------------------------------------------------
 class PostViewSet(viewsets.ReadOnlyModelViewSet):

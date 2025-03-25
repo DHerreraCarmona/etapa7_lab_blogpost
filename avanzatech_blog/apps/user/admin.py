@@ -4,8 +4,8 @@ from .models import CustomUser, UserPermission, Group
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ('email','id','username', 'is_staff', 'is_active', 'role', 'group')  # Campos visibles en la lista de usuarios
-    list_filter = ('is_staff', 'is_active')  # Filtros en el admin
+    list_display = ('email','id','username', 'is_staff', 'is_active', 'role', 'group') 
+    list_filter = ('is_staff', 'is_active')                                             
     fieldsets = (
         (None, {'fields': ('email', 'username','password')}),
         ('Permissions', {'fields': ('is_staff', 'is_active','role' ,'group', 'user_permissions')}),
@@ -16,10 +16,10 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('email', 'username','password1', 'password2', 'is_staff', 'is_active')}
         ),
     )
-    search_fields = ('email','username')  # Permite buscar por email en el admin
-    ordering = ('email',)  # Ordena por email
+    search_fields = ('email','username')                     
+    ordering = ('email',)                                   
 
-admin.site.register(CustomUser, CustomUserAdmin)  # Registra el modelo en el admin
-admin.site.register(UserPermission)  # Registra el modelo en el admin
-admin.site.register(Group)  # Registra el modelo en el admin
+admin.site.register(CustomUser, CustomUserAdmin)               
+admin.site.register(UserPermission)  
+admin.site.register(Group) 
 

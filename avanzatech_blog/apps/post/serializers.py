@@ -3,7 +3,6 @@ from rest_framework import serializers
 from .models import Post, Comment, Like
 from apps.user.serializer import UserSerializer, ShortUserSerializer
 
-
 #Short serializers ---------------------------------------------------------------------
 class ShortPostSerializer(serializers.ModelSerializer):
     class Meta:

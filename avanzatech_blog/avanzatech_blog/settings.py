@@ -53,7 +53,6 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'drf_spectacular',
     'rest_framework.authtoken'
-    #'rest_framework_simplejwt',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
@@ -158,19 +157,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = "/post/"
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"],
     "DEFAULT_PAGINATION_CLASS": "apps.post.pagination.CustomPagination",
 }
-
-"""
-'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
-
-'DEFAULT_RENDERER_CLASSES': [
-    'rest_framework.renderers.JSONRenderer',  # Para respuestas JSON
-    'rest_framework.renderers.BrowsableAPIRenderer',  # Permite la vista de Django REST
-    "rest_framework.renderers.TemplateHTMLRenderer",
-],"""

@@ -21,7 +21,7 @@ class PostPermissions(BasePermission):
         is_team = obj.author.group == user.group
 
         if getattr(view, "action", None) in ["give_like", "write_comment"]:
-            return (obj.public or (obj.team and is_team))
+            return (obj.authenticated or (obj.team and is_team))
         
         if obj.team and is_team:
             if obj.team == 1 and not edit : 

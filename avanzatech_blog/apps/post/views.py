@@ -5,11 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView, CreateAPIView,RetrieveUpdateDestroyAPIView
 
 from .models import Post, Comment, Like
-from apps.user.models import CustomUser as Author
 from .permissions import PostPermissions
+from apps.user.models import CustomUser as Author
 from .filters import filter_posts, filter_reactions, retrieve_obj
 from .pagination import PostListPagination, CommentsListPagination, LikeListPagination
-from .serializers import PostSerializer, EditPostSerializer, ShortCommentSerializer, ShortLikeSerializer, DetailLikeSerializer, DetailCommentSerializer
+from .serializers import PostSerializer, EditPostSerializer, DetailLikeSerializer, DetailCommentSerializer
 
 #View list of post ------------------------------------------------------------------------------
 class PostView(ListAPIView):
@@ -56,7 +56,7 @@ class CommentsView(ListAPIView):
     def get_queryset(self):
         return filter_reactions(Comment, self.request)
     
-class CommentsPostView(ListAPIView):                    # Buscar comentarios por post asociado
+class CommentsPostView(ListAPIView):                    # Search comments by post id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailCommentSerializer
     pagination_class = CommentsListPagination
@@ -69,7 +69,7 @@ class CommentsPostView(ListAPIView):                    # Buscar comentarios por
            raise NotFound({"error": "No Post matches the given query."}) 
         return filter_reactions(Comment, self.request, None, post_id)
 
-class CommentsAuthorView(ListAPIView):                  # Buscar comentarios por autor
+class CommentsAuthorView(ListAPIView):                  # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailCommentSerializer
     pagination_class = CommentsListPagination
@@ -88,7 +88,7 @@ class LikesView(ListAPIView):
     def get_queryset(self):
         return filter_reactions(Like, self.request)
 
-class LikesPostView(ListAPIView):                       # Buscar likes por post asociado
+class LikesPostView(ListAPIView):                       # Search likes by post id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailLikeSerializer
     pagination_class = LikeListPagination
@@ -101,7 +101,7 @@ class LikesPostView(ListAPIView):                       # Buscar likes por post 
            raise NotFound({"error": "No Post matches the given query."}) 
         return filter_reactions(Like, self.request, None, post_id)
 
-class LikesAuthorView(ListAPIView):                     # Buscar likes por autor
+class LikesAuthorView(ListAPIView):                     # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailLikeSerializer
     pagination_class = LikeListPagination

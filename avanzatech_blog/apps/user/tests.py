@@ -1,11 +1,9 @@
 import pytest
-#from django.test import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user
 from django.contrib.auth.models import AnonymousUser
 
 from apps.user.models import CustomUser,Group
-# from apps.user.views import login_view
 
 #Create user in DataBase -------------------------------------------------------------------------------------------------------------------------
 @pytest.mark.user
@@ -67,9 +65,9 @@ def test_login_view(ClientUser):
     response = client.post("/user/api-auth/login/", {"username": "testuser@test.com", "password": "test_password"},follow=True)
     authenticated_user = get_user(client)              
 
-    assert response.status_code == 200                #Test Redirect to post page
+    assert response.status_code == 200                              #Test Redirect to post page
     assert response.request["PATH_INFO"] == "/post/" 
-    assert authenticated_user.is_authenticated        #Test Auth
+    assert authenticated_user.is_authenticated                      #Test Auth
     assert authenticated_user.id == user.id
     assert "_auth_user_id" in client.session 
 
@@ -79,8 +77,8 @@ def test_login_view_fail(ClientUser):
     response = client.post("/user/api-auth/login/", {"username": "user", "password": "nopassword"},follow=True)
     unauthenticated_user = get_user(client)             
 
-    assert response.status_code == 200                      #Test Redirect to login page
-    assert isinstance(unauthenticated_user, AnonymousUser)  #Test Auth Fail 
+    assert response.status_code == 200                              #Test Redirect to login page
+    assert isinstance(unauthenticated_user, AnonymousUser)          #Test Auth Fail 
 
 @pytest.mark.user
 def test_logout(ClientUser):

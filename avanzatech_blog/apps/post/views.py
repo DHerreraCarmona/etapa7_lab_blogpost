@@ -37,10 +37,9 @@ class EditPostView(RetrieveUpdateDestroyAPIView):
     permission_classes = [PostPermissions]
     
     def get_object(self):
-        post_id = self.kwargs.get("pk")
-        post = retrieve_obj(Post,post_id)
+        post = Post.objects.filter(id=self.kwargs["pk"]).first()
         
-        if not PostPermissions().has_object_permission(self.request, self, post) or not self.request.user.is_authenticated:
+        if not PostPermissions().has_object_permission(self.request, self, post) or not self.request.user.is_authenticated or not post:
             raise NotFound({"error": "No Post matches the given query."}) 
         return post
 
@@ -62,12 +61,8 @@ class CommentsPostView(ListAPIView):                    # Search comments by pos
     pagination_class = CommentsListPagination
 
     def get_queryset(self):
-        post_id = self.kwargs.get("post_id")
-        post = retrieve_obj(Post,post_id)
-        
-        if not PostPermissions().has_object_permission(self.request, self, post):
-           raise NotFound({"error": "No Post matches the given query."}) 
-        return filter_reactions(Comment, self.request, None, post_id)
+        post = retrieve_obj(Post,self.kwargs.get("post_id"))
+        return filter_reactions(Comment, self.request, None, post_id=post.id)
 
 class CommentsAuthorView(ListAPIView):                  # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
@@ -75,9 +70,8 @@ class CommentsAuthorView(ListAPIView):                  # Search comments by aut
     pagination_class = CommentsListPagination
 
     def get_queryset(self):
-        author_id = self.kwargs.get("author_id")        
-        retrieve_obj(Author,author_id)
-        return filter_reactions(Comment, self.request, author_id, None)
+        author=retrieve_obj(Author,self.kwargs.get("author_id"))
+        return filter_reactions(Comment, self.request, author_id=author.id)
 
 #View list of Likes ---------------------------------------------------------------------------
 class LikesView(ListAPIView):
@@ -94,12 +88,8 @@ class LikesPostView(ListAPIView):                       # Search likes by post i
     pagination_class = LikeListPagination
 
     def get_queryset(self):
-        post_id = self.kwargs.get("post_id")      
-        post = retrieve_obj(Post,post_id) 
-
-        if not PostPermissions().has_object_permission(self.request, self, post):
-           raise NotFound({"error": "No Post matches the given query."}) 
-        return filter_reactions(Like, self.request, None, post_id)
+        post = retrieve_obj(Post,self.kwargs.get("post_id")) 
+        return filter_reactions(Like, self.request, None, post_id=post.id)
 
 class LikesAuthorView(ListAPIView):                     # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
@@ -107,6 +97,5 @@ class LikesAuthorView(ListAPIView):                     # Search comments by aut
     pagination_class = LikeListPagination
 
     def get_queryset(self):
-        author_id = self.kwargs.get("author_id")  
-        retrieve_obj(Author,author_id)
-        return filter_reactions(Like, self.request, author_id, None)
+        author=retrieve_obj(Author,self.kwargs.get("author_id"))
+        return filter_reactions(Like, self.request, author_id=author.id)

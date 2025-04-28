@@ -32,8 +32,11 @@ def filter_reactions(model, request, author_id=None, post_id=None):
     return model.objects.filter(id__in=allowed_obj).distinct().order_by('post_id')
 
 def retrieve_obj(Model,obj_id):
+    if obj_id is None:
+        raise NotFound({"error": "No Post matches the given query."}) 
+    
     try:
         obj = Model.objects.get(pk=obj_id)
-    except Model.DoesNotExist:
+    except Model.DoesNotExist or not obj:
         raise NotFound({"error": "No Post matches the given query."}) 
     return obj

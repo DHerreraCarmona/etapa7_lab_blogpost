@@ -18,7 +18,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect('/post/')
+            return HttpResponseRedirect('api/post/')
         else:
             return render(request, 'user/login.html', {'error': 'Invalid credentials'})
     else:
@@ -26,7 +26,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('user/login_page')
+    return redirect('login_page')
 
 @api_view(["POST"])
 @permission_classes([AllowAny]) 
@@ -38,8 +38,7 @@ def register_user(request):
     if serializer.is_valid():
         serializer.save()
         return Response({"message": "User registered successfully","user": serializer.data}, status=status.HTTP_201_CREATED)
-       # return redirect('/post/')
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def register_page(request):
-    return render(request, "user/register.html") 
+    return render(request, "user/register.html")

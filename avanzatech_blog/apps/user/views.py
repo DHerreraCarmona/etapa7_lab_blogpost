@@ -1,16 +1,23 @@
 # Create your views here.
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
 from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth.decorators import login_required
 
 from .serializer import UserRegistrationSerializer
 from .models import CustomUser
 
+@ensure_csrf_cookie
+def get_csrf(request):
+    return JsonResponse({'detail': 'CSRF cookie set'})
+
+@csrf_protect
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -18,15 +25,19 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect('api/post/')
+            return JsonResponse({'message': 'Login exitoso'})
         else:
-            return render(request, 'user/login.html', {'error': 'Invalid credentials'})
+            return JsonResponse({'error': 'Credenciales inválidas'}, status=401)
     else:
         return render(request, 'user/login.html')
 
 def logout_view(request):
     logout(request)
     return redirect('login_page')
+
+@login_required
+def user_info(request):
+    return JsonResponse({'username': request.user.username})
 
 @api_view(["POST"])
 @permission_classes([AllowAny]) 

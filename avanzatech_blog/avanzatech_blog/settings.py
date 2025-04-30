@@ -162,10 +162,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.post.pagination.CustomPagination",
 }
 
-
-
 # CSRF_COOKIE_NAME = "csrftoken"
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
 CORS_ALLOWED_ORIGINS = ["http://localhost:4200"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:4200"]

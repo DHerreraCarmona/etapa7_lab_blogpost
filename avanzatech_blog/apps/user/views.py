@@ -42,14 +42,16 @@ def user_info(request):
 @api_view(["POST"])
 @permission_classes([AllowAny]) 
 @authentication_classes([TokenAuthentication])
-def register_user(request):
+@csrf_protect
+def register_user(request): 
     queryset = CustomUser.objects.all()
-    data = request.data if request.content_type == 'application/json' else request.POST
-    serializer = UserRegistrationSerializer(data=data)
+    # data = request.data #if request.content_type == 'application/json' else request.POST
+    serializer = UserRegistrationSerializer(data = request.data)
     if serializer.is_valid():
         serializer.save()
         return Response({"message": "User registered successfully","user": serializer.data}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@csrf_protect
 def register_page(request):
     return render(request, "user/register.html")

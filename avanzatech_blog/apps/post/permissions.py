@@ -18,7 +18,11 @@ class PostPermissions(BasePermission):
         
         if isinstance(obj, Comment) or isinstance(obj, Like):
             obj = obj.post 
-        is_team = obj.author.group == user.group
+        
+        if not obj or not hasattr(obj, 'author') or not obj.author or not user or not hasattr(user, 'group'):
+            is_team = False
+        else:
+            is_team = obj.author.group == user.group
 
         if getattr(view, "action", None) in ["give_like", "write_comment"]:
             return (obj.authenticated or (obj.team and is_team))

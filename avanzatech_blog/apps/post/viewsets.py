@@ -9,12 +9,12 @@ from .models import Post, Like
 from .filters import retrieve_obj
 from .permissions import PostPermissions
 from .pagination import CommentsListPagination, LikeListPagination
-from .serializers import PostSerializer, ShortCommentSerializer, ShortLikeSerializer
+from .serializers import PostDetailSerializer, ShortCommentSerializer, ShortLikeSerializer
 
 #POST VIEWSET------------------------------------------------------------------------------------------------------------------
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     #Detail & Delete------------------------------------------------------------------------------
-    serializer_class = PostSerializer
+    serializer_class = PostDetailSerializer
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly,PostPermissions]
 

@@ -37,7 +37,7 @@ def logout_view(request):
 
 @login_required
 def user_info(request):
-    return JsonResponse({'username': request.user.username})
+    return JsonResponse({'id':request.user.id ,'username': request.user.username})
 
 @api_view(["POST"])
 @permission_classes([AllowAny]) 

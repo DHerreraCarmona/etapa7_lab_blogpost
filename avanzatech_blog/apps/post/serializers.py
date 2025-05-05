@@ -36,6 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
         if obj.author is None:
             return None
         return {
+            "id": obj.author.id,
             "username": obj.author.username,
             "team": obj.author.group.name if obj.author.group else "None"
     }

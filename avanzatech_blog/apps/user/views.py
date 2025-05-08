@@ -1,4 +1,4 @@
-# Create your views here.
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
@@ -31,9 +31,11 @@ def login_view(request):
     else:
         return render(request, 'user/login.html')
 
+@api_view(["POST"])
+@permission_classes([AllowAny]) 
 def logout_view(request):
     logout(request)
-    return redirect('login_page')
+    return JsonResponse({'message': 'Logged out successfully'})
 
 @login_required
 def user_info(request):

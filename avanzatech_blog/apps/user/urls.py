@@ -2,6 +2,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path('logout/', views.logout_view, name='logout'),
     path('', include('rest_framework.urls')),
     path("csrf/", views.get_csrf),
     path("me/", views.user_info),

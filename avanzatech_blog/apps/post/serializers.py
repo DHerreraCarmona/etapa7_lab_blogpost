@@ -28,9 +28,10 @@ class PostSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     countLikes = serializers.SerializerMethodField()
     countComments = serializers.SerializerMethodField()
+    longContent = serializers.SerializerMethodField()
     class Meta:
         model = Post
-        fields = ['id','author','title','excerpt','created_at','countComments','countLikes']
+        fields = ['id','author','title','excerpt','created_at','longContent','countComments','countLikes']
     
     def get_author(self, obj):
         if obj.author is None:
@@ -46,14 +47,32 @@ class PostSerializer(serializers.ModelSerializer):
     
     def get_countComments(self, obj):
         return obj.comments.count()
+    
+    def get_longContent(self, obj):
+        if len(obj.excerpt )== len(obj.content):
+            return False
+        return True
 
 class PostDetailSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-    likes = ShortLikeSerializer(read_only=True, many=True)
-    comments = ShortCommentSerializer(read_only=True, many=True)
+    author = serializers.SerializerMethodField()
+    countLikes = serializers.SerializerMethodField()
+    # likes = ShortLikeSerializer(read_only=True, many=True)
+    # comments = ShortCommentSerializer(read_only=True, many=True)
     class Meta:
         model = Post
-        fields = ['id','author','title','content','created_at','comments','likes']
+        fields = ['id','author','title','content','created_at','countLikes'] #,'comments','likes']
+    
+    def get_author(self, obj):
+        if obj.author is None:
+            return None
+        return {
+            "id": obj.author.id,
+            "username": obj.author.username,
+            "team": obj.author.group.name if obj.author.group else "None"
+    }
+
+    def get_countLikes(self, obj):
+        return obj.likes.count()
 
 class EditPostSerializer(serializers.ModelSerializer):
     author = ShortUserSerializer(read_only=True)

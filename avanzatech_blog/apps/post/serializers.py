@@ -56,7 +56,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
         fields = ['id','author','title','content','created_at','comments','likes']
 
 class EditPostSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = ShortUserSerializer(read_only=True)
     class Meta:
         model = Post
         fields = ['id','author','title','content','public','authenticated','team','owner']

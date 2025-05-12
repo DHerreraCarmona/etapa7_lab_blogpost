@@ -17,6 +17,10 @@ from .models import CustomUser
 def get_csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
 
+@login_required
+def user_info(request):
+    return JsonResponse({'id':request.user.id ,'username': request.user.username, 'team': request.user.group.name})
+
 @csrf_protect
 def login_view(request):
     if request.method == 'POST':
@@ -36,10 +40,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return JsonResponse({'message': 'Logged out successfully'})
-
-@login_required
-def user_info(request):
-    return JsonResponse({'id':request.user.id ,'username': request.user.username})
 
 @api_view(["POST"])
 @permission_classes([AllowAny]) 

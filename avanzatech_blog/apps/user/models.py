@@ -29,6 +29,10 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email,username=username, **extra_fields)
         user.set_password(password)
+
+        # none_group, _ = Group.objects.get_or_create(name="None")
+        # user.group = none_group
+
         user.save(using=self._db)
         return user 
 
@@ -47,12 +51,14 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email,username, password, **extra_fields)  
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(_('email address'), unique=True)
-    username = models.CharField(_('username'),max_length=20, unique=True)
-    is_active = models.BooleanField(_('active'), default=True)
+    email = models.EmailField(_('email address'),unique=True)
+    username = models.CharField(_('username'),max_length=20,unique=True)
+    is_active = models.BooleanField(_('active'),default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
-    role = models.ForeignKey(UserPermission,on_delete=models.SET_NULL, related_name="User", null=True, default=0)
-    group = models.ForeignKey(Group,on_delete=models.SET_NULL, related_name="user",null=True, default=None, blank=True)
+    role = models.ForeignKey(UserPermission,on_delete=models.SET_NULL,related_name="User",null=True,default=0)
+
+    none_group, _ = Group.objects.get_or_create(name="None")
+    group = models.ForeignKey(Group,on_delete=models.SET_NULL,related_name="user",null=True,default=none_group,blank=True)
 
     objects = CustomUserManager()
 

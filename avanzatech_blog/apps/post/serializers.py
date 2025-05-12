@@ -29,9 +29,10 @@ class PostSerializer(serializers.ModelSerializer):
     countLikes = serializers.SerializerMethodField()
     countComments = serializers.SerializerMethodField()
     longContent = serializers.SerializerMethodField()
+    teamEdit = serializers.SerializerMethodField()
     class Meta:
         model = Post
-        fields = ['id','author','title','excerpt','created_at','longContent','countComments','countLikes']
+        fields = ['id','author','title','excerpt','created_at','longContent','countComments','countLikes','teamEdit']
     
     def get_author(self, obj):
         if obj.author is None:
@@ -52,6 +53,9 @@ class PostSerializer(serializers.ModelSerializer):
         if len(obj.excerpt )== len(obj.content):
             return False
         return True
+    
+    def get_teamEdit(self,obj):
+        return obj.team ==2
 
 class PostDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()

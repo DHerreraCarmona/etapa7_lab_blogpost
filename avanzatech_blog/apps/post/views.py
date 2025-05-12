@@ -18,7 +18,7 @@ class PostView(ListAPIView):
     pagination_class = PostListPagination
 
     def get_queryset(self):
-        return filter_posts(Post, self.request)
+        return filter_posts(Post, self.request).order_by('-created_at')
 
 #View create new post 
 class CreatePostView(CreateAPIView):
@@ -89,7 +89,7 @@ class LikesPostView(ListAPIView):                       # Search likes by post i
 
     def get_queryset(self):
         post = retrieve_obj(Post,self.kwargs.get("post_id")) 
-        return filter_reactions(Like, self.request, None, post_id=post.id)
+        return filter_reactions(Like, self.request, None, post_id=post.id).order_by("-created_at")
 
 class LikesAuthorView(ListAPIView):                     # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 

@@ -89,12 +89,12 @@ class LikesPostView(ListAPIView):                       # Search likes by post i
 
     def get_queryset(self):
         post = retrieve_obj(Post,self.kwargs.get("post_id")) 
-        return filter_reactions(Like, self.request, None, post_id=post.id).order_by("-created_at")
+        return filter_reactions(Like, self.request, None, post_id=post.id).order_by("created_at")
 
 class LikesAuthorView(ListAPIView):                     # Search comments by author id
     allowed_methods = ['GET','HEAD','OPTIONS'] 
     serializer_class = DetailLikeSerializer
-    pagination_class = LikeListPagination
+    pagination_class = None
 
     def get_queryset(self):
         author=retrieve_obj(Author,self.kwargs.get("author_id"))
